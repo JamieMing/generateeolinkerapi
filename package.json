@@ -1,11 +1,16 @@
 {
   "name": "generateeolinkerapi",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "连接eolinker,获取接口文档,生成可用的ts方法以及参数类型",
   "main": "./src/index.js",
   "bin": {
     "generateApi": "./bin/generateApi.js"
   },
+  "keywords": [
+    "eolinker",
+    "api",
+    "js"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "api": "generateApi",
@@ -23,5 +28,9 @@
     "inquirer-autocomplete-prompt": "^1.4.0",
     "minimatch": "^3.0.4",
     "qs": "^6.10.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:JamieMing/generateeolinkerapi.git"
   }
 }
