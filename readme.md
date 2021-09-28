@@ -28,8 +28,9 @@ module.exports = {
   password: "**************************", //加密后的密码串，自行控制台查看登录接口参数
   projectId: 224, // 项目id - 埋点系统: 224,信用分系统: 284,观星台: 183,
   distDir: "./src/services", //输出目录，最好保证该目录已存在
-  distFileName: "autoGenerate", //输出文件名
+  distFileName: "autoGenerate", //输出文件名，如果distType是inner模式，则忽略改参数
   domain: "https://eolinker.yidejia.com", //eolinker服务器域名
+  distType: "inner" | "outer", //当使用inner模式，将根据接口的分组名创建api定义文件，中文则转成拼音 ； outer则创建固定名称的定义文件，默认为outer
 };
 ```
 
@@ -189,7 +190,8 @@ declare namespace API {
 
 1. 在获取模块列表后，需要选择模块进行 api 方法的生成，此步骤支持模糊查询
 2. eolinker 服务不一定稳定，因此接口请求时间可快可慢，耐心等待即可，如果失败了，请检查账号密码和项目 id 是否正确
-3. 建议将输出文件添加 eslint 忽略，git 忽略等等
+3. 建议将输出文件添加 eslint 忽略
+4. distType 若是 inner 模式，在选择接口模块的时候，建议选择子级模块，避免产生冲突
 
 ## 联系方式
 

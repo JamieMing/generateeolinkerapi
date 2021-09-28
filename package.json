@@ -27,6 +27,7 @@
     "inquirer": "^8.1.5",
     "inquirer-autocomplete-prompt": "^1.4.0",
     "minimatch": "^3.0.4",
+    "pinyin": "^2.10.2",
     "qs": "^6.10.1"
   },
   "repository": {

@@ -1,10 +1,11 @@
 const axios = require("axios");
-const fs = require("fs");
+// const fs = require("fs");
 const qs = require("qs");
 const inquirer = require("inquirer");
 const fuzzy = require("fuzzy");
 const { resolveConfig } = require("./resolveConfig");
 const defaultConfig = require("../generateApi.config");
+const writeFile = require("./writeFile");
 inquirer.registerPrompt(
   "autocomplete",
   require("inquirer-autocomplete-prompt")
@@ -13,6 +14,8 @@ let __config__ = resolveConfig.sync();
 // 合并默认配置
 __config__ = Object.assign({}, defaultConfig, __config__);
 console.log(__config__);
+
+let currentModuleName = "";
 const http = axios.create({
   headers: {
     Cookie: "PHPSESSID=gf6bohf0ed444spjdan1l0kvt5",
@@ -97,7 +100,9 @@ const main = async () => {
   const promptList = [
     {
       type: "autocomplete",
-      message: "选择模块:",
+      message: `选择模块${
+        __config__.distType == "inner" ? "（建议子级模块优先）" : ""
+      }:`,
       name: "group",
       // suggestOnly: true,
       pageSize: 10,
@@ -127,9 +132,14 @@ const main = async () => {
       // })
     },
   ];
+
   let { group } = await inquirer.prompt(promptList);
   console.log(group);
   console.log("获取api列表中");
+  currentModuleName = groupList
+    .find((i) => i.groupID == group)
+    .groupName.trim()
+    .replace("->", "/");
   let { apiList } = await http.post(
     `${__config__.domain}/server/index.php?g=Web&c=Api&o=getApiList`,
     qs.stringify({
@@ -194,19 +204,7 @@ export async function ${apiName}(params: API.${ApiName}Params): Promise<API.${Ap
     })
     .join("");
   try {
-    let url = `${__config__.distDir}/${__config__.distFileName}.ts`;
-    fs.access(__config__.distDir, fs.constants.F_OK, (err) => {
-      if (err) {
-        fs.mkdirSync(__config__.distDir);
-      }
-      fs.writeFile(url, file, function (err) {
-        if (err) {
-          console.log("写入失败", err);
-        } else {
-          console.log("写入api成功");
-        }
-      });
-    });
+    writeFile(file, __config__, currentModuleName, false);
     return Promise.resolve();
   } catch (error) {
     console.log(error);
@@ -285,19 +283,7 @@ declare namespace API {`;
   file += "\n}";
 
   try {
-    let url = `${__config__.distDir}/${__config__.distFileName}.d.ts`;
-    fs.access(__config__.distDir, fs.constants.F_OK, (err) => {
-      if (err) {
-        fs.mkdirSync(__config__.distDir);
-      }
-      fs.writeFile(url, file, function (err) {
-        if (err) {
-          console.log("写入失败", err);
-        } else {
-          console.log("写入type成功");
-        }
-      });
-    });
+    writeFile(file, __config__, currentModuleName, true);
     return Promise.resolve();
   } catch (error) {
     console.log(error);
@@ -310,6 +296,9 @@ function generateResponce(data) {
   return data.reduce((res, cur) => {
     let keys = cur.paramKey.split(">>");
     let lastObj = keys.reduce((obj, key) => {
+      if (!obj) {
+        console.log(res, "可能有参数未准确拼写，请在eolinker检查接口返回参数");
+      }
       if (obj[key] == undefined) {
         if (cur.paramType < 12) {
           obj[key] = paramTypeDict[cur.paramType];
