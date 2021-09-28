@@ -1,0 +1,9 @@
+module.exports = {
+  username: "xiejiaming",
+  password: "53d24151a71bbadb9471fff0921c777c",
+  // 埋点系统: 224,信用分系统: 284,观星台: 183,
+  projectId: 224,
+  distDir: "./src/services",
+  distFileName: "autoGenerate",
+  domain: "https://eolinker.yidejia.com",
+};
