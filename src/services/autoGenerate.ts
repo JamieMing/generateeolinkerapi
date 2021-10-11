@@ -1,16 +1,30 @@
 
 import request from './request';
 /**
- * 获取事件列表
- * https://eolinker.yidejia.com/#/home/project/inside/api/detail?groupID=4907&apiID=22791&projectName=%E3%80%90golang%E3%80%91%E5%9F%8B%E7%82%B9%E7%B3%BB%E7%BB%9F&projectID=224
+ * 获取属性列表
+ * https://eolinker.yidejia.com/#/home/project/inside/api/detail?groupID=4988&apiID=22990&projectName=%E3%80%90golang%E3%80%91%E5%9F%8B%E7%82%B9%E7%B3%BB%E7%BB%9F&projectID=224
 */
-export async function analyseList(params: API.AnalyseListParams): Promise<API.AnalyseListResponce> {
-    return request.get(`/analyse/list`, {params})
+export async function attributeList(params: API.AttributeListParams): Promise<API.AttributeListResponce> {
+    return request.get(`/attribute/list`, {params})
 }
 /**
- * 事件分析
- * https://eolinker.yidejia.com/#/home/project/inside/api/detail?groupID=4907&apiID=22785&projectName=%E3%80%90golang%E3%80%91%E5%9F%8B%E7%82%B9%E7%B3%BB%E7%BB%9F&projectID=224
+ * 数据类型列表
+ * https://eolinker.yidejia.com/#/home/project/inside/api/detail?groupID=4988&apiID=22995&projectName=%E3%80%90golang%E3%80%91%E5%9F%8B%E7%82%B9%E7%B3%BB%E7%BB%9F&projectID=224
 */
-export async function analyseEvent(params: API.AnalyseEventParams): Promise<API.AnalyseEventResponce> {
-    return request.get(`/analyse/event`, {params})
+export async function dataTypeList(params: API.DataTypeListParams): Promise<API.DataTypeListResponce> {
+    return request.get(`/data_type/list`, {params})
+}
+/**
+ * 编辑属性
+ * https://eolinker.yidejia.com/#/home/project/inside/api/detail?groupID=4988&apiID=23001&projectName=%E3%80%90golang%E3%80%91%E5%9F%8B%E7%82%B9%E7%B3%BB%E7%BB%9F&projectID=224
+*/
+export async function attributeUpdate(params: API.AttributeUpdateParams): Promise<API.AttributeUpdateResponce> {
+    return request.post(`/attribute/update`, params)
+}
+/**
+ * 新增属性
+ * https://eolinker.yidejia.com/#/home/project/inside/api/detail?groupID=4988&apiID=22994&projectName=%E3%80%90golang%E3%80%91%E5%9F%8B%E7%82%B9%E7%B3%BB%E7%BB%9F&projectID=224
+*/
+export async function attributeAdd(params: API.AttributeAddParams): Promise<API.AttributeAddResponce> {
+    return request.post(`/attribute/add`, params)
 }

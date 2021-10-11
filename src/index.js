@@ -178,7 +178,9 @@ function getApiName(uri) {
 }
 function generateFile(data) {
   let file = `
-import request from './request';`;
+import request from '${
+    __config__.distType == "inner" ? "../../" : "./"
+  }request';`;
   file += data
     .map((api) => {
       let [apiName, ApiName] = getApiName(api.apiURI);
@@ -224,7 +226,7 @@ const paramTypeDict = {
   9: "number", // byte
   10: "number", // short
   11: "number", // long
-  12: "number[]",
+  12: "(number | string)[]",
   13: "Record<string, unknown>", // object
   14: "number", //number
 };
@@ -236,7 +238,8 @@ const getParamType = (request) => {
         return (
           (paramTypeDict[paramType] == "string"
             ? `'${item.value}'`
-            : item.value) + `/** ${item.valueDescription} */`
+            : item.value) +
+          (item.valueDescription ? `/** ${item.valueDescription} */` : "")
         );
       })
       .join(" | ");
@@ -262,13 +265,16 @@ declare namespace API {`;
         })
       );
       let [apiName, ApiName] = getApiName(api.apiURI);
-      let params = `\n    type ${ApiName}Params = {\n${requestInfo
+      const paramsType = `{\n${requestInfo
         .map((request) => {
           return `        /** ${request.paramName} */\n       ${
             request.paramKey
           }${request.paramNotNull == "1" ? "?" : ""}: ${getParamType(request)}`;
         })
         .join("\n")}\n   }`;
+      let params = `\n    type ${ApiName}Params = ${
+        paramsType || "Record<string, unknown>"
+      }`;
 
       let respObj = generateResponce(resultInfo);
       params += `\n       type ${ApiName}Responce = ${handleGenerateResponceType(
