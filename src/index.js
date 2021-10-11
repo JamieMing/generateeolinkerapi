@@ -273,7 +273,7 @@ declare namespace API {`;
         })
         .join("\n")}\n   }`;
       let params = `\n    type ${ApiName}Params = ${
-        paramsType || "Record<string, unknown>"
+        requestInfo.length ? paramsType : "Record<string, unknown>|undefined"
       }`;
 
       let respObj = generateResponce(resultInfo);
@@ -335,8 +335,9 @@ function handleGenerateResponceType(resultInfo) {
         if (typeof data[key] == "string") {
           // if (key != 'isArray') {
           // console.log(key)
+          const comment = findRespTypeName(paramKey + ">>" + key);
           params.push(
-            `/** ${findRespTypeName(paramKey + ">>" + key)} */\n'${key}': ${
+            `${comment ? "/** " + comment + " */ \n" : ""}'${key}': ${
               data[key]
             }`
           );
@@ -352,7 +353,7 @@ function handleGenerateResponceType(resultInfo) {
       }
     }
     if (params.length == 0) {
-      return `Record<string, unknown>`;
+      return `any`;
     }
     return `{\n${params.join(",\n")}}`;
   };

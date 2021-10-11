@@ -20,39 +20,27 @@ declare namespace API {
     per_page?: number;
   };
   type AttributeListResponce = {
-    /**  */
     total: number;
     table_header: {
-      /**  */
       group_id: number;
-      /**  */
       group_name: string;
       columns: {
-        /**  */
         id: number;
-        /**  */
         order: number;
-        /**  */
         show_title: string;
-        /**  */
         column: string;
       }[];
     };
     data: {
-      /**  */
       id: number;
-      /**  */
       name: string;
-      /**  */
       show_title: string;
-      /**  */
       data_type: string;
-      /**  */
       data_report: string;
     }[];
   };
-  type DataTypeListParams = {};
-  type DataTypeListResponce = Record<string, unknown>[];
+  type DataTypeListParams = Record<string, unknown> | undefined;
+  type DataTypeListResponce = any[];
   type AttributeUpdateParams = {
     /** 属性id */
     id: number;
@@ -65,7 +53,7 @@ declare namespace API {
     /** 数据字典 */
     data_dict?: string;
   };
-  type AttributeUpdateResponce = Record<string, unknown>;
+  type AttributeUpdateResponce = any;
   type AttributeAddParams = {
     /** 属性名称 */
     name: string;
@@ -83,5 +71,5 @@ declare namespace API {
     /** 数据字典 */
     data_dict: string;
   };
-  type AttributeAddResponce = Record<string, unknown>;
+  type AttributeAddResponce = any;
 }
