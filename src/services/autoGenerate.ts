@@ -1,30 +1,48 @@
-
-import request from './request';
+import request from "./request";
 /**
- * 获取属性列表
- * https://eolinker.yidejia.com/#/home/project/inside/api/detail?groupID=4988&apiID=22990&projectName=%E3%80%90golang%E3%80%91%E5%9F%8B%E7%82%B9%E7%B3%BB%E7%BB%9F&projectID=224
-*/
-export async function attributeList(params: API.AttributeListParams): Promise<API.AttributeListResponce> {
-    return request.get(`/attribute/list`, {params})
+ * 删除
+ * https://eolinker.yidejia.com/#/home/project/inside/api/detail?groupID=4900&apiID=22771&projectName=%E3%80%90golang%E3%80%91%E5%9F%8B%E7%82%B9%E7%B3%BB%E7%BB%9F&projectID=224
+ */
+export async function projectDelete(
+  params: API.ProjectDeleteParams,
+  project_id: string
+): Promise<API.ProjectDeleteResponce> {
+  return request.post(`/project/delete/${project_id}`, params);
 }
 /**
- * 数据类型列表
- * https://eolinker.yidejia.com/#/home/project/inside/api/detail?groupID=4988&apiID=22995&projectName=%E3%80%90golang%E3%80%91%E5%9F%8B%E7%82%B9%E7%B3%BB%E7%BB%9F&projectID=224
-*/
-export async function dataTypeList(params: API.DataTypeListParams): Promise<API.DataTypeListResponce> {
-    return request.get(`/data_type/list`, {params})
+ * 修改
+ * https://eolinker.yidejia.com/#/home/project/inside/api/detail?groupID=4900&apiID=22770&projectName=%E3%80%90golang%E3%80%91%E5%9F%8B%E7%82%B9%E7%B3%BB%E7%BB%9F&projectID=224
+ */
+export async function projectUpdate(
+  params: API.ProjectUpdateParams,
+  project_id: string
+): Promise<API.ProjectUpdateResponce> {
+  return request.post(`/project/update/${project_id}`, params);
 }
 /**
- * 编辑属性
- * https://eolinker.yidejia.com/#/home/project/inside/api/detail?groupID=4988&apiID=23001&projectName=%E3%80%90golang%E3%80%91%E5%9F%8B%E7%82%B9%E7%B3%BB%E7%BB%9F&projectID=224
-*/
-export async function attributeUpdate(params: API.AttributeUpdateParams): Promise<API.AttributeUpdateResponce> {
-    return request.post(`/attribute/update`, params)
+ * 列表
+ * https://eolinker.yidejia.com/#/home/project/inside/api/detail?groupID=4900&apiID=22757&projectName=%E3%80%90golang%E3%80%91%E5%9F%8B%E7%82%B9%E7%B3%BB%E7%BB%9F&projectID=224
+ */
+export async function projectList(
+  params: API.ProjectListParams
+): Promise<API.ProjectListResponce> {
+  return request.get(`/project/list`, { params });
 }
 /**
- * 新增属性
- * https://eolinker.yidejia.com/#/home/project/inside/api/detail?groupID=4988&apiID=22994&projectName=%E3%80%90golang%E3%80%91%E5%9F%8B%E7%82%B9%E7%B3%BB%E7%BB%9F&projectID=224
-*/
-export async function attributeAdd(params: API.AttributeAddParams): Promise<API.AttributeAddResponce> {
-    return request.post(`/attribute/add`, params)
+ * 添加
+ * https://eolinker.yidejia.com/#/home/project/inside/api/detail?groupID=4900&apiID=22758&projectName=%E3%80%90golang%E3%80%91%E5%9F%8B%E7%82%B9%E7%B3%BB%E7%BB%9F&projectID=224
+ */
+export async function projectAdd(
+  params: API.ProjectAddParams
+): Promise<API.ProjectAddResponce> {
+  return request.post(`/project/add`, params);
+}
+/**
+ * 获取员工列表
+ * https://eolinker.yidejia.com/#/home/project/inside/api/detail?groupID=4900&apiID=23024&projectName=%E3%80%90golang%E3%80%91%E5%9F%8B%E7%82%B9%E7%B3%BB%E7%BB%9F&projectID=224
+ */
+export async function staffList(
+  params: API.StaffListParams
+): Promise<API.StaffListResponce> {
+  return request.get(`/staff/list`, { params });
 }

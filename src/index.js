@@ -184,6 +184,11 @@ import request from '${
   file += data
     .map((api) => {
       let [apiName, ApiName] = getApiName(api.apiURI);
+      let pathParams = "";
+      let pathParamsUrl = api.apiURI.replace(/:(\w+)/g, function ($0, $1) {
+        pathParams += `,${$1}: string\n`;
+        return `\$\{${$1}\}`;
+      });
       let temp = `
 /**
  * ${api.apiName}
@@ -195,12 +200,12 @@ import request from '${
         __config__.projectId
       }
 */
-export async function ${apiName}(params: API.${ApiName}Params): Promise<API.${ApiName}Responce> {
+export async function ${apiName}(params: API.${ApiName}Params${pathParams}): Promise<API.${ApiName}Responce> {
     return request.${
       api.apiRequestType == "1" ? "get" : "post"
-    }(\`${api.apiURI.replace(/:(\w+)/g, function ($0, $1) {
-        return `\$\{params.${$1}\}`;
-      })}\`, ${api.apiRequestType == "1" ? "{params}" : "params"})
+    }(\`${pathParamsUrl}\`, ${
+        api.apiRequestType == "1" ? "{params}" : "params"
+      })
 }`;
       return temp;
     })

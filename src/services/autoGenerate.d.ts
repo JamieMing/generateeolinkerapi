@@ -1,75 +1,89 @@
+
 declare namespace API {
-  type AttributeListParams = {
-    /** 搜索关键字 */
-    keyword?: string;
-    /** 是否有数据上报 */
-    data_report:
-      | 0 /** 默认没有数据上报 */
-      | 1 /** 有数据上报 */
-      | 2 /** 全部 */;
-    /** 数据类型 */
-    data_type?:
-      | "数值NUMBER"
-      | "文本STRING"
-      | "时间DATATIME"
-      | "布尔BOOL"
-      | "列表LIST";
-    /**  */
-    page?: number;
-    /**  */
-    per_page?: number;
-  };
-  type AttributeListResponce = {
-    total: number;
-    table_header: {
-      group_id: number;
-      group_name: string;
-      columns: {
-        id: number;
-        order: number;
-        show_title: string;
-        column: string;
-      }[];
-    };
-    data: {
-      id: number;
-      name: string;
-      show_title: string;
-      data_type: string;
-      data_report: string;
-    }[];
-  };
-  type DataTypeListParams = Record<string, unknown> | undefined;
-  type DataTypeListResponce = any[];
-  type AttributeUpdateParams = {
-    /** 属性id */
-    id: number;
-    /** 显示名称 */
-    show_title?: string;
-    /** 数据类型 */
-    data_type?: string;
-    /** 描述 */
-    description?: string;
-    /** 数据字典 */
-    data_dict?: string;
-  };
-  type AttributeUpdateResponce = any;
-  type AttributeAddParams = {
-    /** 属性名称 */
-    name: string;
-    /** 显示名称 */
-    show_title: string;
-    /** 数据类型 枚举 */
-    data_type:
-      | "数值NUMBER"
-      | "文本STRING"
-      | "时间DATETIME"
-      | "布尔BOOL"
-      | "列表LIST";
-    /** 描述 */
-    description: string;
-    /** 数据字典 */
-    data_dict: string;
-  };
-  type AttributeAddResponce = any;
+    type ProjectDeleteParams = {
+        /** 项目物理ID */
+       id: number
+        /** 项目ID，url必传，请求参数可以不填 */
+       project_id?: string
+   }
+       type ProjectDeleteResponce = any
+    type ProjectUpdateParams = {
+        /** 项目物理ID */
+       id: number
+        /** 名称 */
+       project_name?: string
+        /** 描述 */
+       description?: string
+        /** 平台 */
+       platform?: 1/** PC */ | 2/** Android */ | 3/** IOS */ | 4/** H5 */ | 0/** 全部 */ | 5/** 小程序 */
+        /** 是否启用 */
+       is_valid?: 1/** 启用 */ | 0/** 暂停 */
+        /** 管理员集合get,post：manager_staff_ids=1&manager_staff_ids=2，json：[] */
+       manager_staff_ids?: (number | string)[]
+        /** 项目ID，url必传，请求参数可以不填 */
+       project_id?: string
+   }
+       type ProjectUpdateResponce = any
+    type ProjectListParams = {
+        /** 是否启用 */
+       is_valid?: 1/** 启用 */ | 0/** 暂停 */
+        /** 搜索关键字 */
+       keyword?: string
+        /** 平台 */
+       platform?: 1/** PC */ | 2/** Android */ | 3/** IOS */ | 4/** H5 */ | 0/** 全部 */ | 5/** 小程序 */
+        /** 页码 */
+       page?: number
+        /** 条数 */
+       per_page?: number
+        /** 返回类型 */
+       resp_type?: 'list'/** 列表 */ | 'table'/** 表格 */
+   }
+       type ProjectListResponce = {
+'total': string,
+'table_header': {
+'group_id': string,
+'group_name': string,
+'columns': {
+'id': string,
+'order': string,
+'show_title': string,
+'column': string}[]},
+'data': {
+'id': number,
+'project_name': string,
+'project_id': string,
+'platform': string,
+'platform_str': string,
+'is_valid': number,
+'description': string,
+'created_at': string,
+'manager': {
+'staff_id': string,
+'staff_name': string}[]}[]}
+    type ProjectAddParams = {
+        /** 标识 */
+       project_id: string
+        /** 名称 */
+       project_name: string
+        /** 描述 */
+       description?: string
+        /** 平台 */
+       platform: 1/** PC */ | 2/** Android */ | 3/** IOS */ | 4/** H5 */ | 0/** 全部 */ | 5/** 小程序 */
+        /** 管理员ids集合 get,post：manager_staff_ids=1&manager_staff_ids=2，json：[] */
+       manager_staff_ids?: (number | string)[]
+   }
+       type ProjectAddResponce = any
+    type StaffListParams = {
+        /** 关键字 */
+       keyword: string
+        /** 页码 */
+       page?: number
+        /** 条数 */
+       per_page?: number
+   }
+       type StaffListResponce = {
+'total': string,
+'data': {
+'staff_id': string,
+'staff_name': string}[]}
 }
