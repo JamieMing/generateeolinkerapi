@@ -282,9 +282,13 @@ declare namespace API {`;
       }`;
 
       let respObj = generateResponce(resultInfo);
-      params += `\n       type ${ApiName}Responce = ${handleGenerateResponceType(
-        resultInfo
-      )(respObj.data)}${respObj.data && respObj.data.isArray ? "[]" : ""}`;
+
+      params += `\n       type ${ApiName}Responce = ${
+        // 只有返回参数是对象类型才进入解析
+        typeof respObj.data === "object"
+          ? handleGenerateResponceType(resultInfo)(respObj.data)
+          : respObj.data
+      } ${respObj.data && respObj.data.isArray ? "[]" : ""}`;
 
       resolve(params);
     });
