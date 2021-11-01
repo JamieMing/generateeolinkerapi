@@ -179,7 +179,12 @@ function getApiName(uri) {
 function generateFile(data) {
   let file = `
 import request from '${
-    __config__.distType == "inner" ? "../../" : "./"
+    __config__.distType == "inner"
+      ? `${currentModuleName
+          .split("/")
+          .map((i) => "../")
+          .join("")}`
+      : "./"
   }request';`;
   file += data
     .map((api) => {
@@ -270,24 +275,29 @@ declare namespace API {`;
         })
       );
       let [apiName, ApiName] = getApiName(api.apiURI);
-      const paramsType = `{\n${requestInfo
-        .map((request) => {
-          return `        /** ${request.paramName} */\n       ${
-            request.paramKey
-          }${request.paramNotNull == "1" ? "?" : ""}: ${getParamType(request)}`;
-        })
-        .join("\n")}\n   }`;
-      let params = `\n    type ${ApiName}Params = ${
-        requestInfo.length ? paramsType : "Record<string, unknown>|undefined"
-      }`;
 
+      let requestObj = generateResponce(requestInfo);
+      // console.log(requestObj);
+      // const paramsType = `{\n${requestInfo
+      //   .map((request) => {
+      //     return `        /** ${request.paramName} */\n       ${
+      //       request.paramKey
+      //     }${request.paramNotNull == "1" ? "?" : ""}: ${getParamType(request)}`;
+      //   })
+      //   .join("\n")}\n   }`;
+      // let params = `\n    type ${ApiName}Params = ${
+      //   requestInfo.length ? paramsType : "Record<string, unknown>|undefined"
+      // }`;
+      let params = `\n type ${ApiName}Params = ${handleGenerateRequestType(
+        requestInfo
+      )(requestObj)}`;
       let respObj = generateResponce(resultInfo);
 
       params += `\n       type ${ApiName}Responce = ${
         // 只有返回参数是对象类型才进入解析
         typeof respObj.data === "object"
           ? handleGenerateResponceType(resultInfo)(respObj.data)
-          : respObj.data
+          : respObj.data || "any"
       } ${respObj.data && respObj.data.isArray ? "[]" : ""}`;
 
       resolve(params);
@@ -357,6 +367,50 @@ function handleGenerateResponceType(resultInfo) {
               data[key],
               paramKey + ">>" + key
             )}${data[key].isArray ? "[]" : ""}`
+          );
+        }
+      }
+    }
+    if (params.length == 0) {
+      return `any`;
+    }
+    return `{\n${params.join(",\n")}}`;
+  };
+  return generateResponceType;
+}
+
+function handleGenerateRequestType(resultInfo) {
+  function findRespType(keys) {
+    let res = resultInfo.find((item) => {
+      return item.paramKey == keys;
+    });
+    return res || { paramName: "" };
+  }
+  const generateResponceType = (data, paramKey = "") => {
+    data = data || {};
+    let params = [];
+    for (let key in data) {
+      let respType = findRespType(paramKey ? paramKey + key : key);
+      // console.log(respType);
+      const comment = respType.paramName;
+      if (key != "isArray") {
+        if (typeof data[key] == "string") {
+          // if (key != 'isArray') {
+          // console.log(key)
+          // const comment = respType.paramName;
+          params.push(
+            `${comment ? "/** " + comment + " */ \n" : ""}'${key}'${
+              respType.paramNotNull == "1" ? "?" : ""
+            }: ${data[key]}`
+          );
+          // }
+        } else {
+          params.push(
+            `${comment ? "/** " + comment + " */ \n" : ""}'${key}'${
+              respType.paramNotNull == "1" ? "?" : ""
+            }: ${generateResponceType(data[key], key + ">>")}${
+              data[key].isArray ? "[]" : ""
+            }`
           );
         }
       }
