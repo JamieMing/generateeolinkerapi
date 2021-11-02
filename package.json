@@ -1,6 +1,6 @@
 {
   "name": "generateeolinkerapi",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "连接eolinker,获取接口文档,生成可用的ts方法以及参数类型",
   "main": "./src/index.js",
   "bin": {

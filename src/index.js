@@ -340,21 +340,23 @@ function generateResponce(data) {
   }, {});
 }
 function handleGenerateResponceType(resultInfo) {
-  function findRespTypeName(keys) {
+  function findRespType(keys) {
     let res = resultInfo.find((item) => {
       return item.paramKey == keys;
     });
-    return res ? res.paramName : "";
+    return res || { paramName: "" };
   }
   const generateResponceType = (data, paramKey = "data") => {
     data = data || {};
     let params = [];
     for (let key in data) {
+      let respType = findRespType(paramKey + ">>" + key);
+      const comment = respType.paramName;
       if (key != "isArray") {
         if (typeof data[key] == "string") {
           // if (key != 'isArray') {
           // console.log(key)
-          const comment = findRespTypeName(paramKey + ">>" + key);
+          // const comment = findRespTypeName(paramKey + ">>" + key);
           params.push(
             `${comment ? "/** " + comment + " */ \n" : ""}'${key}': ${
               data[key]
@@ -401,7 +403,7 @@ function handleGenerateRequestType(resultInfo) {
           params.push(
             `${comment ? "/** " + comment + " */ \n" : ""}'${key}'${
               respType.paramNotNull == "1" ? "?" : ""
-            }: ${data[key]}`
+            }: ${getParamType(respType)}`
           );
           // }
         } else {
