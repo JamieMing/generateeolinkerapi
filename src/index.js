@@ -242,7 +242,7 @@ const paramTypeDict = {
 };
 const getParamType = (request) => {
   const { paramType, paramValueList } = request;
-  if (paramValueList.length) {
+  if (paramValueList && paramValueList.length) {
     return paramValueList
       .map((item) => {
         return (
@@ -277,17 +277,7 @@ declare namespace API {`;
       let [apiName, ApiName] = getApiName(api.apiURI);
 
       let requestObj = generateResponce(requestInfo);
-      // console.log(requestObj);
-      // const paramsType = `{\n${requestInfo
-      //   .map((request) => {
-      //     return `        /** ${request.paramName} */\n       ${
-      //       request.paramKey
-      //     }${request.paramNotNull == "1" ? "?" : ""}: ${getParamType(request)}`;
-      //   })
-      //   .join("\n")}\n   }`;
-      // let params = `\n    type ${ApiName}Params = ${
-      //   requestInfo.length ? paramsType : "Record<string, unknown>|undefined"
-      // }`;
+
       let params = `\n type ${ApiName}Params = ${handleGenerateRequestType(
         requestInfo
       )(requestObj)}`;
@@ -384,7 +374,7 @@ function handleGenerateResponceType(resultInfo) {
 function handleGenerateRequestType(resultInfo) {
   function findRespType(keys) {
     let res = resultInfo.find((item) => {
-      return item.paramKey == keys;
+      return item.paramKey.indexOf(keys) > -1;
     });
     return res || { paramName: "" };
   }
@@ -392,8 +382,11 @@ function handleGenerateRequestType(resultInfo) {
     data = data || {};
     let params = [];
     for (let key in data) {
+      console.log(paramKey ? paramKey + key : key);
       let respType = findRespType(paramKey ? paramKey + key : key);
-      // console.log(respType);
+      // if (!respType.paramValueList) {
+      //   console.log(respType, data, key);
+      // }
       const comment = respType.paramName;
       if (key != "isArray") {
         if (typeof data[key] == "string") {
