@@ -382,7 +382,7 @@ function handleGenerateRequestType(resultInfo) {
     data = data || {};
     let params = [];
     for (let key in data) {
-      console.log(paramKey ? paramKey + key : key);
+      // console.log(paramKey ? paramKey + key : key);
       let respType = findRespType(paramKey ? paramKey + key : key);
       // if (!respType.paramValueList) {
       //   console.log(respType, data, key);
