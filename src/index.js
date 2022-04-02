@@ -162,7 +162,22 @@ const main = async () => {
 
 main();
 
-function getApiName(uri) {
+// 请求方式
+const apiRequestTypeDict = {
+  0: ["post", "params"],
+  1: ["get", "{params}"],
+  2: ["put", "params"], //
+  3: ["delete", "{params}"], //
+  4: ["head", "{params}"],
+  5: ["options", "{params}"],
+  6: ["patch", "params"],
+};
+
+// 获取api名称
+function getApiName(uri, apiRequestType) {
+  if (!apiRequestTypeDict[apiRequestType]) {
+    throw new Error("请求方式有误");
+  }
   let apiName = uri.split("/").filter((i) => !/^\:/.test(i));
   const length = Math.ceil((apiName.length * 2) / 3);
   apiName = apiName
@@ -174,7 +189,15 @@ function getApiName(uri) {
     .split("_")
     .map((i) => i.replace(/^\w/, ($0) => $0.toUpperCase()))
     .join("");
-  return [apiName.replace(/^\w/, ($0) => $0.toLowerCase()), apiName];
+  const methodName = __config__.isRestfulApi
+    ? apiRequestTypeDict[apiRequestType][0] + apiName
+    : apiName.replace(/^\w/, ($0) => $0.toLowerCase());
+  const typePrefixName = __config__.isRestfulApi
+    ? apiRequestTypeDict[apiRequestType][0].replace(/^\w/, ($0) =>
+        $0.toUpperCase()
+      ) + apiName
+    : apiName;
+  return [methodName, typePrefixName];
 }
 function generateFile(data) {
   let file = `
@@ -188,7 +211,7 @@ import request from '${
   }request';`;
   file += data
     .map((api) => {
-      let [apiName, ApiName] = getApiName(api.apiURI);
+      let [apiName, ApiName] = getApiName(api.apiURI, api.apiRequestType);
       let pathParams = "";
       let pathParamsUrl = api.apiURI.replace(/:(\w+)/g, function ($0, $1) {
         pathParams += `,${$1}: string\n`;
@@ -207,10 +230,8 @@ import request from '${
 */
 export async function ${apiName}(params: API.${ApiName}Params${pathParams}): Promise<API.${ApiName}Responce> {
     return request.${
-      api.apiRequestType == "1" ? "get" : "post"
-    }(\`${pathParamsUrl}\`, ${
-        api.apiRequestType == "1" ? "{params}" : "params"
-      })
+      apiRequestTypeDict[api.apiRequestType][0]
+    }(\`${pathParamsUrl}\`, ${apiRequestTypeDict[api.apiRequestType][1]})
 }`;
       return temp;
     })
@@ -240,6 +261,7 @@ const paramTypeDict = {
   13: "Record<string, unknown>", // object
   14: "number", //number
 };
+
 const getParamType = (request) => {
   const { paramType, paramValueList } = request;
   if (paramValueList && paramValueList.length) {
@@ -274,7 +296,7 @@ declare namespace API {`;
           apiID: api.apiID,
         })
       );
-      let [apiName, ApiName] = getApiName(api.apiURI);
+      let [apiName, ApiName] = getApiName(api.apiURI, api.apiRequestType);
 
       let requestObj = generateResponce(requestInfo);
 
