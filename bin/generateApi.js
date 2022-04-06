@@ -1,2 +1,8 @@
 #! /usr/bin/env node
-require("../src/index.js");
+const [, , ...args] = process.argv;
+
+if (args[0] == "update") {
+  require("../src/update.js");
+} else {
+  require("../src/index.js");
+}

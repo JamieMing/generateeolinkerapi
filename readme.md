@@ -14,7 +14,11 @@ yarn add generateeolinkerapi -D
 
 ## 开始
 
-cli 命令为**generateApi**
+cli 命令为
+
+1. 生成 api：**generateApi**
+
+2. 更新 api: **generateApi update** 可快捷选择历史生成的 api 模块，储存上限 100
 
 > 可在 script 添加"api": "generateApi"方便使用，然后执行 npm run api 即可，当然也可以直接执行 generateApi
 

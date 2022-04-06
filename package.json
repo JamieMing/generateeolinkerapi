@@ -1,6 +1,6 @@
 {
   "name": "generateeolinkerapi",
-  "version": "1.1.3",
+  "version": "2.0.0",
   "description": "连接eolinker,获取接口文档,生成可用的ts方法以及参数类型",
   "main": "./src/index.js",
   "bin": {
@@ -14,6 +14,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "api": "generateApi",
+    "updateApi": "generateApi update",
     "version": "npm version patch",
     "publish": "npm publish"
   },

@@ -4,6 +4,7 @@ const { resolveConfig } = require("./resolveConfig");
 const defaultConfig = require("../generateApi.config");
 const { getProjectList } = require("./request");
 const { apiRequestTypeDict, paramTypeDict } = require("./dict");
+const fs = require("fs");
 
 let __config__ = resolveConfig.sync();
 // 合并默认配置
@@ -38,9 +39,29 @@ const getProjectFromTerminal = async () => {
 };
 
 /**
+ * 更新历史
+ * @param {*} groupId
+ * @param {*} groupName
+ */
+const updateHistory = (groupId, groupName, projectId) => {
+  const history = require("./moduleHistory.js");
+  const index = history.findIndex((item) => item.id == groupId);
+  if (index > -1) {
+    history.splice(index, 1);
+  }
+  history.unshift({ id: groupId, name: groupName, projectId });
+  if (history.length > 100) {
+    history = history.slice(0, 100);
+  }
+  fs.writeFileSync(
+    "./src/moduleHistory.js",
+    `module.exports = ${JSON.stringify(history)}`
+  );
+};
+/**
  * 获取选择的模块id
  * */
-const getGroupFromTerminal = async ({ groupList }) => {
+const getGroupFromTerminal = async ({ groupList, projectId }) => {
   groupList = groupList.reduce((res, cur) => {
     res.push(cur);
     if (cur.childGroupList.length) {
@@ -83,15 +104,13 @@ const getGroupFromTerminal = async ({ groupList }) => {
     },
   ];
 
-  let { groupId } = await inquirer.prompt(promptList);
-
-  return [
-    groupId,
-    groupList
-      .find((i) => i.groupID == groupId)
-      .groupName.trim()
-      .replace("->", "/"),
-  ];
+  const { groupId } = await inquirer.prompt(promptList);
+  const groupName = groupList
+    .find((i) => i.groupID == groupId)
+    .groupName.trim()
+    .replace("->", "/");
+  updateHistory(groupId, groupName, projectId);
+  return [groupId, groupName];
 };
 
 const formatFirstWordCase = () => {};
@@ -178,10 +197,38 @@ const getJsonDataFromApi = (data) => {
     return res;
   }, {});
 };
+
+/**
+ * 从历史中查找模块
+ */
+const getModuleFromHistory = async () => {
+  const history = require("./moduleHistory");
+  console.log("获取历史生成模块数据");
+  const promptList = [
+    {
+      type: "list",
+      name: "groupId",
+      message: "选择模块",
+      choices: history.map((item) => {
+        return {
+          name: item.name,
+          value: item.id,
+        };
+      }),
+    },
+  ];
+
+  let { groupId } = await inquirer.prompt(promptList);
+  //   console.log("项目：", projectId);
+  const res = history.find((i) => i.id == groupId);
+  return res;
+};
+
 module.exports = {
   getProjectFromTerminal,
   getGroupFromTerminal,
   getApiName,
   getParamType,
   getJsonDataFromApi,
+  getModuleFromHistory,
 };

@@ -120,6 +120,18 @@ const logout = async () => {
     `${__config__.domain}/server/index.php?g=Web&c=User&o=logout`
   );
 };
+
+const getApi = async ({ projectId, api }) => {
+  const res = await http.post(
+    `${__config__.domain}/server/index.php?g=Web&c=Api&o=getApi`,
+    qs.stringify({
+      projectID: projectId,
+      groupID: api.groupID,
+      apiID: api.apiID,
+    })
+  );
+  return res;
+};
 module.exports = {
   http,
   login,
@@ -127,4 +139,5 @@ module.exports = {
   getProjectList,
   getApiList,
   logout,
+  getApi,
 };
