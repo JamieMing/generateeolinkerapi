@@ -1,204 +1,26 @@
-const axios = require("axios");
 // const fs = require("fs");
 const qs = require("qs");
-const inquirer = require("inquirer");
-const fuzzy = require("fuzzy");
 const { resolveConfig } = require("./resolveConfig");
 const defaultConfig = require("../generateApi.config");
 const writeFile = require("./writeFile");
-inquirer.registerPrompt(
-  "autocomplete",
-  require("inquirer-autocomplete-prompt")
-);
+
+const { apiRequestTypeDict } = require("./dict");
+const { http, login, getGroupList, logout, getApiList } = require("./request");
+const {
+  getGroupFromTerminal,
+  getProjectFromTerminal,
+  getApiName,
+  getParamType,
+  getJsonDataFromApi,
+} = require("./util");
+
 let __config__ = resolveConfig.sync();
 // 合并默认配置
 __config__ = Object.assign({}, defaultConfig, __config__);
 console.log(__config__);
 
 let currentModuleName = "";
-const http = axios.create({
-  headers: {
-    Cookie: "PHPSESSID=gf6bohf0ed444spjdan1l0kvt5",
-    Host: __config__.domain.replace("https://", ""),
-    Origin: __config__.domain,
-    "Content-Type": "application/x-www-form-urlencoded",
-    //go_admin_session: '', //会自动添加
-  },
-});
-http.interceptors.request.use(
-  (config) => {
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
 
-http.interceptors.response.use(
-  (response) => {
-    // console.log(response.request)
-    let res = response.data;
-    // console.log(res);
-    // 提前判断
-    return res;
-  },
-  async (error) => {
-    let response = error.response;
-    console.log(response);
-    return Promise.reject(response.data);
-  }
-);
-const main = async () => {
-  // 登录
-  console.log("登录中");
-  let { userID } = await http.post(
-    `${__config__.domain}/server/index.php?g=Web&c=Guest&o=login`,
-    qs.stringify({
-      loginName: __config__.username,
-      loginPassword: __config__.password,
-    })
-  );
-  if (userID) {
-    console.log("登录成功");
-  } else {
-    console.error("登录失败");
-    return;
-  }
-
-  console.log(
-    "获取模块列表中，有时候很快，有时候可能需要两分钟，耐心等一下就好"
-  );
-  let { groupList } = await http.post(
-    `${__config__.domain}/server/index.php?g=Web&c=Group&o=getGroupList`,
-    qs.stringify({
-      projectID: __config__.projectId,
-      groupID: -1,
-      childGroupID: -1,
-    })
-  );
-
-  if (!groupList) {
-    console.error(
-      "列表获取有问题，可能是用户账号和密码错误，也可能是项目id不正确"
-    );
-    return;
-  } else {
-    console.log("获取模块列表成功");
-  }
-  groupList = groupList.reduce((res, cur) => {
-    res.push(cur);
-    if (cur.childGroupList.length) {
-      res = res.concat(
-        cur.childGroupList.map((item) => {
-          item.groupName = `  ${cur.groupName}->${item.groupName}`;
-          return item;
-        })
-      );
-    }
-    return res;
-  }, []);
-  const promptList = [
-    {
-      type: "autocomplete",
-      message: `选择模块${
-        __config__.distType == "inner" ? "（建议子级模块优先）" : ""
-      }:`,
-      name: "group",
-      // suggestOnly: true,
-      pageSize: 10,
-      source: (answers, input) => {
-        input = input || "";
-        return new Promise(function (resolve) {
-          var fuzzyResult = fuzzy.filter(input, groupList, {
-            extract: function (el) {
-              return el.groupName;
-            },
-          });
-          resolve(
-            fuzzyResult.map(function (el) {
-              return {
-                name: el.original.groupName,
-                value: el.original.groupID,
-              };
-            })
-          );
-        });
-      },
-      // choices: groupList.map(item => {
-      //     return {
-      //         name: item.groupName,
-      //         value: item.groupID
-      //     }
-      // })
-    },
-  ];
-
-  let { group } = await inquirer.prompt(promptList);
-  console.log(group);
-  console.log("获取api列表中");
-  currentModuleName = groupList
-    .find((i) => i.groupID == group)
-    .groupName.trim()
-    .replace("->", "/");
-  let { apiList } = await http.post(
-    `${__config__.domain}/server/index.php?g=Web&c=Api&o=getApiList`,
-    qs.stringify({
-      projectID: __config__.projectId,
-      groupID: group,
-      orderBy: 1,
-      asc: 1,
-    })
-  );
-  console.log("获取api列表成功");
-  console.log(apiList);
-  await generateFile(apiList);
-  await generateTypeFile(apiList);
-
-  // 退出登录
-  await http.post(
-    `${__config__.domain}/server/index.php?g=Web&c=User&o=logout`
-  );
-};
-
-main();
-
-// 请求方式
-const apiRequestTypeDict = {
-  0: ["post", "params"],
-  1: ["get", "{params}"],
-  2: ["put", "params"], //
-  3: ["delete", "{params}"], //
-  4: ["head", "{params}"],
-  5: ["options", "{params}"],
-  6: ["patch", "params"],
-};
-
-// 获取api名称
-function getApiName(uri, apiRequestType) {
-  if (!apiRequestTypeDict[apiRequestType]) {
-    throw new Error("请求方式有误");
-  }
-  let apiName = uri.split("/").filter((i) => !/^\:/.test(i));
-  const length = Math.ceil((apiName.length * 2) / 3);
-  apiName = apiName
-    .slice(length * -1) //动态截取
-    .join("_");
-  apiName = apiName == "delete" ? "remove" : apiName;
-  // 下划线转大驼峰
-  apiName = apiName
-    .split("_")
-    .map((i) => i.replace(/^\w/, ($0) => $0.toUpperCase()))
-    .join("");
-  const methodName = __config__.isRestfulApi
-    ? apiRequestTypeDict[apiRequestType][0] + apiName
-    : apiName.replace(/^\w/, ($0) => $0.toLowerCase());
-  const typePrefixName = __config__.isRestfulApi
-    ? apiRequestTypeDict[apiRequestType][0].replace(/^\w/, ($0) =>
-        $0.toUpperCase()
-      ) + apiName
-    : apiName;
-  return [methodName, typePrefixName];
-}
 function generateFile(data) {
   let file = `
 import request from '${
@@ -244,43 +66,7 @@ export async function ${apiName}(params: API.${ApiName}Params${pathParams}): Pro
     return Promise.reject();
   }
 }
-const paramTypeDict = {
-  0: "string",
-  1: "any", // file
-  2: "Record<string, unknown>", // json
-  3: "number", //int
-  4: "number", // float
-  5: "number", // double
-  6: "string", //date
-  7: "string", //datetime
-  8: "boolean",
-  9: "number", // byte
-  10: "number", // short
-  11: "number", // long
-  12: "(number | string)[]",
-  13: "Record<string, unknown>", // object
-  14: "number", //number
-};
 
-const getParamType = (request) => {
-  const { paramType, paramValueList } = request;
-  if (paramValueList && paramValueList.length) {
-    return paramValueList
-      .map((item) => {
-        return (
-          (paramTypeDict[paramType] == "string"
-            ? `'${item.value}'`
-            : item.value) +
-          (item.valueDescription ? `/** ${item.valueDescription} */` : "")
-        );
-      })
-      .join(" | ");
-  }
-  if (paramTypeDict[paramType]) {
-    return paramTypeDict[paramType];
-  }
-  return "未知，请检查";
-};
 async function generateTypeFile(data) {
   let file = `
 declare namespace API {`;
@@ -298,12 +84,12 @@ declare namespace API {`;
       );
       let [apiName, ApiName] = getApiName(api.apiURI, api.apiRequestType);
 
-      let requestObj = generateResponce(requestInfo);
+      let requestObj = getJsonDataFromApi(requestInfo);
 
       let params = `\n type ${ApiName}Params = ${handleGenerateRequestType(
         requestInfo
       )(requestObj)}`;
-      let respObj = generateResponce(resultInfo);
+      let respObj = getJsonDataFromApi(resultInfo);
 
       params += `\n       type ${ApiName}Responce = ${
         // 只有返回参数是对象类型才进入解析
@@ -328,29 +114,11 @@ declare namespace API {`;
   }
 }
 
-function generateResponce(data) {
-  // data.map(item=>item.paramKey)
-  return data.reduce((res, cur) => {
-    let keys = cur.paramKey.split(">>");
-    let lastObj = keys.reduce((obj, key) => {
-      if (!obj) {
-        console.log(res, "可能有参数未准确拼写，请在eolinker检查接口返回参数");
-      }
-      if (obj[key] == undefined) {
-        if (cur.paramType < 12) {
-          obj[key] = paramTypeDict[cur.paramType];
-        } else {
-          obj[key] = {
-            ...(cur.paramType == 12 ? { isArray: true } : {}),
-          };
-        }
-      }
-      return obj[key];
-    }, res);
-    lastObj = { ...lastObj, ...cur };
-    return res;
-  }, {});
-}
+/**
+ * 递归处理返回参数
+ * @param {*} resultInfo
+ * @returns
+ */
 function handleGenerateResponceType(resultInfo) {
   function findRespType(keys) {
     let res = resultInfo.find((item) => {
@@ -393,6 +161,11 @@ function handleGenerateResponceType(resultInfo) {
   return generateResponceType;
 }
 
+/**
+ * 递归处理请求参数
+ * @param {*} resultInfo
+ * @returns
+ */
 function handleGenerateRequestType(resultInfo) {
   function findRespType(keys) {
     let res = resultInfo.find((item) => {
@@ -439,3 +212,25 @@ function handleGenerateRequestType(resultInfo) {
   };
   return generateResponceType;
 }
+
+(async () => {
+  await login();
+
+  let groupId = 0;
+  let projectId = __config__.projectId; //默认是0
+  // 填了项目id
+  if (!__config__.projectId) {
+    projectId = await getProjectFromTerminal();
+  }
+
+  let groupList = await getGroupList(projectId);
+  group = await getGroupFromTerminal({ groupList });
+  console.log(group);
+  groupId = group[0];
+  currentModuleName = group[1];
+  const apiList = await getApiList({ projectId, groupId });
+
+  await generateFile(apiList);
+  await generateTypeFile(apiList);
+  await logout();
+})();
