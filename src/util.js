@@ -44,7 +44,9 @@ const getProjectFromTerminal = async () => {
  * @param {*} groupName
  */
 const updateHistory = (groupId, groupName, projectId) => {
-  const history = require("./moduleHistory.js");
+  const dir = "./src/.generateApi";
+  const prod_dir = "./node_modules/generateeolinkerapi/src/.generateApi";
+  const history = require("./.generateApi/moduleHistory.js");
   const index = history.findIndex((item) => item.id == groupId);
   if (index > -1) {
     history.splice(index, 1);
@@ -53,8 +55,19 @@ const updateHistory = (groupId, groupName, projectId) => {
   if (history.length > 100) {
     history = history.slice(0, 100);
   }
+  try {
+    // fs.accessSync(dir, fs.constants.F_OK);
+    fs.accessSync(prod_dir, fs.constants.F_OK);
+  } catch (error) {
+    // fs.mkdirSync(dir, { recursive: true });
+    fs.mkdirSync(prod_dir, { recursive: true });
+  }
+  // fs.writeFileSync(
+  //   dir + "/moduleHistory.js",
+  //   `module.exports = ${JSON.stringify(history)}`
+  // );
   fs.writeFileSync(
-    "./src/moduleHistory.js",
+    prod_dir + "/moduleHistory.js",
     `module.exports = ${JSON.stringify(history)}`
   );
 };
@@ -202,7 +215,7 @@ const getJsonDataFromApi = (data) => {
  * 从历史中查找模块
  */
 const getModuleFromHistory = async () => {
-  const history = require("./moduleHistory");
+  const history = require("./.generateApi/moduleHistory");
   console.log("获取历史生成模块数据");
   const promptList = [
     {
