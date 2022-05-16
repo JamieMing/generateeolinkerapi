@@ -1,7 +1,7 @@
 const writeFile = require("./writeFile");
 const { apiRequestTypeDict } = require("./dict");
 const { getApiName, getParamType, getJsonDataFromApi } = require("./util");
-const { getApi } = require("./request");
+const { getApi, checkLogin, login } = require("./request");
 const { resolveConfig } = require("./resolveConfig");
 const defaultConfig = require("../generateApi.config");
 let __config__ = resolveConfig.sync();
@@ -50,38 +50,56 @@ const generateFile = (data, currentModuleName, projectId) => {
     return Promise.reject();
   }
 };
-
+async function queue(arr) {
+  const result = [];
+  for (let p of arr) {
+    result.push(await p);
+  }
+  return result;
+}
 const generateTypeFile = async (data, currentModuleName, projectId) => {
   let file = `
   declare namespace API {`;
-  let tasks = data.map((api) => {
+  const tasks = data.map(async (api) => {
     return new Promise(async (resolve) => {
-      let {
-        apiInfo: { requestInfo, resultInfo },
-      } = await getApi({ projectId, api });
-      let [apiName, ApiName] = getApiName(api.apiURI, api.apiRequestType);
+      try {
+        const check = await checkLogin();
+        if (check.statusCode == "120005") {
+          await login(true);
+        }
+        // console.log(check);
+        let {
+          apiInfo: { requestInfo, resultInfo },
+        } = await getApi({ projectId, api });
+        let [apiName, ApiName] = getApiName(api.apiURI, api.apiRequestType);
 
-      let requestObj = getJsonDataFromApi(requestInfo);
+        let requestObj = getJsonDataFromApi(requestInfo);
 
-      let params = `\n type ${ApiName}Params = ${handleGenerateRequestType(
-        requestInfo
-      )(requestObj)}`;
-      let respObj = getJsonDataFromApi(resultInfo);
+        let params = `\n type ${ApiName}Params = ${handleGenerateRequestType(
+          requestInfo
+        )(requestObj)}`;
+        let respObj = getJsonDataFromApi(resultInfo);
 
-      params += `\n       type ${ApiName}Responce = ${
-        // 只有返回参数是对象类型才进入解析
-        typeof respObj.data === "object"
-          ? handleGenerateResponceType(resultInfo)(respObj.data)
-          : respObj.data || "any"
-      } ${respObj.data && respObj.data.isArray ? "[]" : ""}`;
+        params += `\n       type ${ApiName}Responce = ${
+          // 只有返回参数是对象类型才进入解析
+          typeof respObj.data === "object"
+            ? handleGenerateResponceType(resultInfo)(respObj.data)
+            : respObj.data || "any"
+        } ${respObj.data && respObj.data.isArray ? "[]" : ""}`;
 
-      resolve(params);
+        resolve(params);
+      } catch (err) {
+        console.log(api.apiName, err.message);
+        resolve("");
+      }
     });
   });
-  let params = await Promise.all(tasks);
-  file += params.join("");
+  let params1 = await Promise.all(tasks);
+  // let params2 = [];
+  // let params2 = await Promise.all(tasks.slice(5));
+  file += params1.join("");
   file += "\n}";
-
+  // console.log(file);
   try {
     writeFile(file, __config__, currentModuleName, true);
     return Promise.resolve();

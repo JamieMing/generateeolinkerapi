@@ -6,13 +6,23 @@ const defaultConfig = require("../generateApi.config");
 let __config__ = resolveConfig.sync();
 // 合并默认配置
 __config__ = Object.assign({}, defaultConfig, __config__);
-
+axios.defaults.timeout = 30000;
 const http = axios.create({
   headers: {
-    Cookie: "PHPSESSID=gf6bohf0ed444spjdan1l0kvt5",
+    Cookie:
+      "PHPSESSID=dhbsrr5j53kr336hbkao84f1t4; Hm_lvt_7c64d0bc53a1ac316ae162c808d87958=1652058633; Hm_lpvt_7c64d0bc53a1ac316ae162c808d87958=1652061979",
     Host: __config__.domain.replace("https://", ""),
     Origin: __config__.domain,
+    Referer: __config__.domain + "/",
     "Content-Type": "application/x-www-form-urlencoded",
+    "sec-ch-ua": `"Chromium";v="94", "Microsoft Edge";v="94", ";Not A Brand";v="99"`,
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": "macOS",
+    "Sec-Fetch-Dest": "empty",
+    "Sec-Fetch-Mode": "cors",
+    "Sec-Fetch-Site": "same-origin",
+    "User-Agent":
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Safari/537.36 Edg/94.0.992.31",
     //go_admin_session: '', //会自动添加
   },
 });
@@ -44,9 +54,9 @@ http.interceptors.response.use(
  * 登录eolinker
  * @returns
  */
-const login = async () => {
+const login = async (noTip) => {
   // 登录
-  console.log("登录中");
+  !noTip && console.log("登录中");
   const res = await http.post(
     `${__config__.domain}/server/index.php?g=Web&c=Guest&o=login`,
     qs.stringify({
@@ -55,12 +65,18 @@ const login = async () => {
     })
   );
   if (res.userID) {
-    console.log("登录成功");
+    !noTip && console.log("登录成功");
     return res;
   } else {
-    console.error("登录失败");
+    !noTip && console.error("登录失败");
     return;
   }
+};
+
+const checkLogin = () => {
+  return http.post(
+    `${__config__.domain}/server/index.php?g=Web&c=User&o=getUserInfo`
+  );
 };
 /**
  *
@@ -109,6 +125,13 @@ const getApiList = async ({ projectId, groupId }) => {
       orderBy: 1,
       asc: 1,
     })
+    // {
+    //   headers: {
+    //     Cookie: `PHPSESSID=dhbsrr5j53kr336hbkao84f1t${(
+    //       Math.random() * 10
+    //     ).toFixed(0)};`,
+    //   },
+    // }
   );
   console.log("获取api列表成功");
   return res.apiList;
@@ -122,7 +145,7 @@ const logout = async () => {
 };
 
 const getApi = async ({ projectId, api }) => {
-  const res = await http.post(
+  return http.post(
     `${__config__.domain}/server/index.php?g=Web&c=Api&o=getApi`,
     qs.stringify({
       projectID: projectId,
@@ -140,4 +163,5 @@ module.exports = {
   getApiList,
   logout,
   getApi,
+  checkLogin,
 };

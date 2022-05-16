@@ -29,4 +29,5 @@ console.log(__config__);
   await generateFile(apiList, group[1], projectId);
   await generateTypeFile(apiList, group[1], projectId);
   await logout();
+  console.log("登录退出");
 })();
