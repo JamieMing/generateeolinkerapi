@@ -164,7 +164,7 @@ function handleGenerateResponceType(resultInfo) {
 function handleGenerateRequestType(resultInfo) {
   function findRespType(keys) {
     let res = resultInfo.find((item) => {
-      return item.paramKey.indexOf(keys) > -1;
+      return item.paramKey == keys;
     });
     return res || { paramName: "" };
   }
